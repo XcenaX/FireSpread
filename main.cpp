@@ -12,7 +12,7 @@
 
 #define EMPTY 0
 #define BURNING 1
-#define BURNT 12
+#define BURNT 2
 
 const double V = 1.2; // Это скорость линейного распространения пожара, ее нужно подбирать для каждого случая чтобы выглядело реалистично
 const double FIRE_SPREAD_PROB_DIVISOR = 4;
@@ -59,8 +59,8 @@ const char* JSON_FILE_PATH = "G:/VKR/Automates3/fire.json";
 struct PixelType {
     const char* Name;
     double LowestHeatOfCombustion_kJ_per_kg;
-    double LinearFlameSpeed_m_per_s_per_Density;
-    double SpecificBurningRate_kg_per_kg_per_sec;
+    double LinearFlameSpeed;
+    double BurningRate;
     double SmokeGeneration;
     double OxygenConsumption_kg_per_kg;
     struct GasEmission {
@@ -76,6 +76,7 @@ struct Pixel {
     int x;
     int y;
     double fuel_mass; 
+    int t; // текущее время горения
     const PixelType* pixel_type;
 };
 
@@ -108,8 +109,8 @@ PixelType* loadData() {
         const rapidjson::Value& obj = d[i];
         data[i].Name = obj["Name"].GetString();
         data[i].LowestHeatOfCombustion_kJ_per_kg = obj["LowestHeatOfCombustion_kJ_per_kg"].GetDouble();
-        data[i].LinearFlameSpeed_m_per_s_per_Density = obj["LinearFlameSpeed_m_per_s_per_Density"].GetDouble();
-        data[i].SpecificBurningRate_kg_per_kg_per_sec = obj["SpecificBurningRate_kg_per_kg_per_sec"].GetDouble();
+        data[i].LinearFlameSpeed = obj["LinearFlameSpeed"].GetDouble();
+        data[i].BurningRate = obj["BurningRate"].GetDouble();
         data[i].SmokeGeneration = obj["SmokeGeneration"].GetDouble();
         data[i].OxygenConsumption_kg_per_kg = obj["OxygenConsumption_kg_per_kg"].GetDouble();
 
@@ -132,6 +133,7 @@ void initializePixels(const char room[ROOM_HEIGHT][ROOM_WIDTH], Pixel pixels[ROO
             pixels[i][j].x = i;
             pixels[i][j].y = j;
             pixels[i][j].pixel_type = type;
+            pixels[i][j].t = 0;
             double fuel_mass = 0.0;
             switch (room[i][j]) {
                 case 't':
@@ -292,22 +294,22 @@ int main() {
             // Сделать проверку для 3D
 
             // Проверка соседнего пикселя влево
-            if (x > 0 && pixels[x - 1][y].state < BURNING) {
+            if (x > 0 && pixels[x - 1][y].state < BURNING && MAP[(x - 1) * ROOM_WIDTH + y] != '#') {
                 addToList(CheckList, &pixels[x-1][y]);
             }
 
             // Проверка соседнего пикселя вправо
-            if (x < ROOM_HEIGHT - 1 && pixels[x + 1][y].state < BURNING) {
+            if (x < ROOM_HEIGHT - 1 && pixels[x + 1][y].state < BURNING && MAP[(x + 1) * ROOM_WIDTH + y] != '#') {
                 addToList(CheckList, &pixels[x+1][y]);
             }
 
             // Проверка соседнего пикселя вверх
-            if (y > 0 && pixels[x][y - 1].state < BURNING) {
+            if (y > 0 && pixels[x][y - 1].state < BURNING && MAP[x * ROOM_WIDTH + (y - 1)] != '#') {
                 addToList(CheckList, &pixels[x][y-1]);
             }
 
             // Проверка соседнего пикселя вниз
-            if (y < ROOM_WIDTH - 1 && pixels[x][y + 1].state < BURNING) {
+            if (y < ROOM_WIDTH - 1 && pixels[x][y + 1].state < BURNING && MAP[x * ROOM_WIDTH + (y + 1)] != '#') {
                 addToList(CheckList, &pixels[x][y+1]);
             }
 
@@ -321,14 +323,12 @@ int main() {
         for (int i = 0; i < FireList->size; i++) {
             Pixel* pixel = FireList->pixels[i];
 
-            if (pixel->state == BURNING) {
-                // TODO
-                // Сделать правильную формулу для высчета сгоревшей массы обьекта 
-                double heat_release = pixel->pixel_type->LowestHeatOfCombustion_kJ_per_kg * pixel->pixel_type->SpecificBurningRate_kg_per_kg_per_sec;
-                double fuel_consumption = pixel->pixel_type->SpecificBurningRate_kg_per_kg_per_sec / pixel->pixel_type->LinearFlameSpeed_m_per_s_per_Density;
-                pixel->fuel_mass -= fuel_consumption;
+            if (pixel->state == BURNING) {                
+                pixel->t += 1; 
+                double A = 1.05 * pixel->pixel_type->BurningRate * pow(pixel->pixel_type->LinearFlameSpeed, 2);
+                double burntMass = A * pow(pixel->t, 3);
 
-                if (pixel->fuel_mass <= 0) {
+                if (pixel->fuel_mass <= burntMass) {
                     pixel->state = BURNT;
                     removeFromList(FireList, pixel);
                     //delete pixel;
