@@ -54,7 +54,7 @@ const char* MAP = "\
 #                       #                     #       #       tt   tt   tt   #      mmm   mmm   mmm#\
 ####################################################################################################";
 
-const char* JSON_FILE_PATH = "G:/VKR/Automates3/fire.json";
+const char* JSON_FILE_PATH = "D:/Diplom/FireSpread/fire.json";
 
 struct PixelType {
     const char* Name;
