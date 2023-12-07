@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.28)
 project(CMakeFire1 VERSION 0.1.0 LANGUAGES C CXX)
 
 include(CTest)
