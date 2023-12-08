@@ -1,11 +1,10 @@
-#ifndef FIRESIMULATION_H
-#define FIRESIMULATION_H
+#ifndef FIRESIMULATION_2D_H
+#define FIRESIMULATION_2D_H
 
 #include <unordered_map>
 
 #define ROOM_WIDTH 100
 #define ROOM_HEIGHT 34
-#define ROOM_DEPTH 50
 #define EMPTY 0
 #define BURNING 1   
 #define BURNT 2
@@ -16,7 +15,6 @@ const double MAX_LOWEST_HEAT_OF_COMBUSTION = 45000;
 
 extern const int START_FIRE_X;
 extern const int START_FIRE_Y;
-extern const int START_FIRE_Z;
 
 extern const char * MAP;
 
@@ -39,7 +37,6 @@ struct Pixel {
     int fp;
     int x;
     int y;
-    int z;
     double fuel_mass; 
     int t; // Текущее время горения
     const PixelType* pixel_type;
@@ -62,12 +59,12 @@ private:
     const char* JSON_FILE_PATH = "G:/VKR/Automates3/fire.json";
 
     PixelType* loadData();
-    void initializePixels(const char room[ROOM_HEIGHT][ROOM_WIDTH][ROOM_DEPTH], Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH][ROOM_DEPTH]);
-    void displayRoom(Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH][ROOM_DEPTH], char char_room[ROOM_HEIGHT][ROOM_WIDTH][ROOM_DEPTH]);
-    int calculateFP(Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH][ROOM_DEPTH], int x, int y, int z);
+    void initializePixels(const char room[ROOM_HEIGHT][ROOM_WIDTH], Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH]);
+    void displayRoom(Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH], char char_room[ROOM_HEIGHT][ROOM_WIDTH]);
+    int calculateFP(Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH], int x, int y);
     List* createList();
     void addToList(List* list, Pixel* pixel);
     void removeFromList(List* list, Pixel* pixel);
 };
 
-#endif // FIRESIMULATION_H
+#endif // FIRESIMULATION_2D_H
