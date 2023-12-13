@@ -1,4 +1,95 @@
-#include <stdio.h>
+#include "room_graph.hpp"
+#include <iostream>
+#include <iomanip>
+
+void printFireDynamicsHistory(const RoomGraph& roomGraph) {
+    const auto& rooms = roomGraph.getRooms(); // Предполагается, что есть метод для доступа к комнатам в RoomGraph
+
+    for (const auto& roomPair : rooms) {
+        const Room& room = roomPair.second;
+        const auto& history = room.getFireDynamicsHistory();
+
+        std::cout << "Room ID: " << room.getId() << std::endl;
+        std::cout << std::left << std::setw(15) << "Time Step" 
+                  << std::setw(15) << "Burned Mass"
+                  << std::setw(15) << "Gas Density"
+                  << std::setw(15) << "Gas Temp"
+                  << std::setw(15) << "Smoke Coeff"
+                  << std::setw(15) << "Visibility" << std::endl;
+
+        int timeStep = 0;
+        for (const auto& params : history) {
+            std::cout << std::left << std::setw(15) << timeStep++
+                      << std::setw(15) << params.burned_mass
+                      << std::setw(15) << params.gas_density
+                      << std::setw(15) << params.gas_temperature
+                      << std::setw(15) << params.smoke_extinction_coefficient
+                      << std::setw(15) << params.visibility << std::endl;
+        }
+        std::cout << std::endl;
+    }
+}
+
+
+int main()
+{
+    RoomGraph roomGraph;
+
+    // Добавление комнат
+    // Примерные начальные параметры
+    InitialParameters params1 = {
+        13800, // Теплота сгорания.
+        0.0108,   // Линейная скорость распространения пожара.
+        0.0145,   // Удельная скорость выгорания горючей нагрузки.
+        270,   // Дымообразующая способность горящего материала.
+        0.87,   // Коэффициент полноты сгорания.
+        0.95,   // Коэффициент теплопоглощения.
+        293,    // Начальная температура.
+        1.21,   // Начальная плотность газовой среды в помещении.
+        1.03,   // Удельная теплоемкость при постоянном давлении.
+        270    // Объем помещения.
+    };
+    InitialParameters params2 = {
+        13800, // Теплота сгорания.
+        0.0108,   // Линейная скорость распространения пожара.
+        0.0145,   // Удельная скорость выгорания горючей нагрузки.
+        270,   // Дымообразующая способность горящего материала.
+        0.87,   // Коэффициент полноты сгорания.
+        0.95,   // Коэффициент теплопоглощения.
+        293,    // Начальная температура.
+        1.21,   // Начальная плотность газовой среды в помещении.
+        1.03,   // Удельная теплоемкость при постоянном давлении.
+        500    // Объем помещения.
+    };
+    // Создание комнат и добавление их в граф
+    Room room1(1, params1, true);
+    Room room2(2, params2);
+    Room room3(3, params1);
+
+    roomGraph.addRoom(room1);
+    roomGraph.addRoom(room2);
+    roomGraph.addRoom(room3);
+
+    // Добавление связей между комнатами
+    roomGraph.addConnection(1, 2, 0.2);
+    roomGraph.addConnection(2, 3, 0.2);
+
+    // // Запуск расчета динамики пожара
+    try
+    {
+        roomGraph.calculateFireDynamicsUpToTime(200, 10, 0.00001, 10.0);
+        printFireDynamicsHistory(roomGraph);
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
+
+/*#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
@@ -75,7 +166,7 @@ struct Pixel {
     int fp;
     int x;
     int y;
-    double fuel_mass; 
+    double fuel_mass;
     int t; // текущее время горения
     const PixelType* pixel_type;
 };
@@ -164,12 +255,12 @@ void displayRoom(Pixel pixels[ROOM_HEIGHT][ROOM_WIDTH], char char_room[ROOM_HEIG
         for (int j = 0; j < ROOM_WIDTH; j++) {
             int pixel_value = pixels[i][j].fuel_mass;
             if(pixels[i][j].state == BURNING){
-                std::cout << '*';                
+                std::cout << '*';
             } else if(pixels[i][j].state == EMPTY){
                 std::cout << char_room[i][j];
             } else if(pixels[i][j].state == BURNT){
                 std::cout << 'X';
-            }   
+            }
         }
         std::cout << std::endl;
     }
@@ -290,7 +381,7 @@ int main() {
             Pixel* pixel = NewList->pixels[i];
             int x = pixel->x;
             int y = pixel->y;
-            // TODO 
+            // TODO
             // Сделать проверку для 3D
 
             // Проверка соседнего пикселя влево
@@ -323,8 +414,8 @@ int main() {
         for (int i = 0; i < FireList->size; i++) {
             Pixel* pixel = FireList->pixels[i];
 
-            if (pixel->state == BURNING) {                
-                pixel->t += 1; 
+            if (pixel->state == BURNING) {
+                pixel->t += 1;
                 double A = 1.05 * pixel->pixel_type->BurningRate * pow(pixel->pixel_type->LinearFlameSpeed, 2);
                 double burntMass = A * pow(pixel->t, 3);
 
@@ -353,3 +444,4 @@ int main() {
 
     return 0;
 }
+*/
