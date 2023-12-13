@@ -2,24 +2,27 @@
 #include <iostream>
 #include <iomanip>
 
-void printFireDynamicsHistory(const RoomGraph& roomGraph) {
-    const auto& rooms = roomGraph.getRooms(); // Предполагается, что есть метод для доступа к комнатам в RoomGraph
+void printFireDynamicsHistory(const RoomGraph &roomGraph, double timeStep)
+{
+    const auto &rooms = roomGraph.getRooms(); // Предполагается, что есть метод для доступа к комнатам в RoomGraph
 
-    for (const auto& roomPair : rooms) {
-        const Room& room = roomPair.second;
-        const auto& history = room.getFireDynamicsHistory();
+    for (const auto &roomPair : rooms)
+    {
+        const Room &room = roomPair.second;
+        const auto &history = room.getFireDynamicsHistory();
 
         std::cout << "Room ID: " << room.getId() << std::endl;
-        std::cout << std::left << std::setw(15) << "Time Step" 
+        std::cout << std::left << std::setw(15) << "Time Step"
                   << std::setw(15) << "Burned Mass"
                   << std::setw(15) << "Gas Density"
                   << std::setw(15) << "Gas Temp"
                   << std::setw(15) << "Smoke Coeff"
                   << std::setw(15) << "Visibility" << std::endl;
 
-        int timeStep = 0;
-        for (const auto& params : history) {
-            std::cout << std::left << std::setw(15) << timeStep++
+        for (size_t i = 0; i < history.size(); ++i)
+        {
+            const auto &params = history[i];
+            std::cout << std::left << std::setw(15) << i * timeStep
                       << std::setw(15) << params.burned_mass
                       << std::setw(15) << params.gas_density
                       << std::setw(15) << params.gas_temperature
@@ -30,7 +33,6 @@ void printFireDynamicsHistory(const RoomGraph& roomGraph) {
     }
 }
 
-
 int main()
 {
     RoomGraph roomGraph;
@@ -38,28 +40,28 @@ int main()
     // Добавление комнат
     // Примерные начальные параметры
     InitialParameters params1 = {
-        13800, // Теплота сгорания.
-        0.0108,   // Линейная скорость распространения пожара.
-        0.0145,   // Удельная скорость выгорания горючей нагрузки.
-        270,   // Дымообразующая способность горящего материала.
+        13800,  // Теплота сгорания.
+        0.0108, // Линейная скорость распространения пожара.
+        0.0145, // Удельная скорость выгорания горючей нагрузки.
+        270,    // Дымообразующая способность горящего материала.
         0.87,   // Коэффициент полноты сгорания.
         0.95,   // Коэффициент теплопоглощения.
         293,    // Начальная температура.
         1.21,   // Начальная плотность газовой среды в помещении.
         1.03,   // Удельная теплоемкость при постоянном давлении.
-        270    // Объем помещения.
+        270     // Объем помещения.
     };
     InitialParameters params2 = {
-        13800, // Теплота сгорания.
-        0.0108,   // Линейная скорость распространения пожара.
-        0.0145,   // Удельная скорость выгорания горючей нагрузки.
-        270,   // Дымообразующая способность горящего материала.
+        13800,  // Теплота сгорания.
+        0.0108, // Линейная скорость распространения пожара.
+        0.0145, // Удельная скорость выгорания горючей нагрузки.
+        270,    // Дымообразующая способность горящего материала.
         0.87,   // Коэффициент полноты сгорания.
         0.95,   // Коэффициент теплопоглощения.
         293,    // Начальная температура.
         1.21,   // Начальная плотность газовой среды в помещении.
         1.03,   // Удельная теплоемкость при постоянном давлении.
-        500    // Объем помещения.
+        500     // Объем помещения.
     };
     // Создание комнат и добавление их в граф
     Room room1(1, params1, true);
@@ -77,8 +79,9 @@ int main()
     // // Запуск расчета динамики пожара
     try
     {
-        roomGraph.calculateFireDynamicsUpToTime(200, 10, 0.00001, 10.0);
-        printFireDynamicsHistory(roomGraph);
+        double timeStep = 10.0;
+        roomGraph.calculateFireDynamicsUpToTime(200, 10, 0.00001, timeStep);
+        printFireDynamicsHistory(roomGraph, timeStep);
     }
     catch (const std::runtime_error &e)
     {
